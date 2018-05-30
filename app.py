@@ -9,10 +9,9 @@ line_bot_api = LineBotApi('y5rsb056kL8UVgzoW7Vz8wE8dtmNPKSkXNO01/yddVDpIhmoCI9Sn
 handler = WebhookHandler('09476e50209f395bfa593c7bd53cdef0')
 
 
-
 @app.route("/")
 def hello():
-    return "this is chatbot sever!"
+    return 'chatbot sever!!!'
 
 @app.route("/webhook", methods=['POST'])
 def webhook():
@@ -75,26 +74,7 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text='ชื่อแพมค่ะ'))
         return 0
-    if event.message.text == 'ร้อนอะ':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text='ลองหาอะไรเย็นๆกินดีมั้ย'))
-        return 0
-    if event.message.text == 'เบื่อมั้ย':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text='ไม่เบื่อเลย เราชอบคุย'))
-        return 0
-    if event.message.text == 'ขอบคุณนะ':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text='ยินดีค่ะ'))
-        return 0
-    if event.message.text == 'รู้ภาษาคนได้ไง':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text='ก็ให้เธอช่วยคุยกับเราไง'))
-        return 0  
+    
 
 
 if __name__ == "__main__":
