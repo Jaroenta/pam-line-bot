@@ -1,75 +1,41 @@
-from flask import Flask, request
-import json
-import requests
+from flask import Flask, request ,abort
+from linebot import (LineBotApi, WebhookHanndler)
+from linebot.exceptions import (InvalidSignatureError)
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage)
 
-# ตรง YOURSECRETKEY ต้องนำมาใส่เองครับจะกล่าวถึงในขั้นตอนต่อๆ ไป
-global LINE_API_KEY
-LINE_API_KEY = '9BZgJt/LJFh0pLe6BZGc1q8W5+d/IwKQhaBSEt47PWbXsgos0qfoBxKNoTcDdgrJJwFwQ5iAnhnJTAgjE6jUxwtlKjbS5FNwG0BxxBUH7FD7LGHk/GPar0G0xn+CfBI6C9d9W7U2kSUOnGe7cLiBSAdB04t89/1O/w1cDnyilFU='
+app = Flask(__name__)
+
+
+line_bot_api = LineBotApi('y5rsb056kL8UVgzoW7Vz8wE8dtmNPKSkXNO01/yddVDpIhmoCI9Sn53L0KZf/JdmJwFwQ5iAnhnJTAgjE6jUxwtlKjbS5FNwG0BxxBUH7FCnKa5YqDzU0nZSXd42chGB1LSZ/pm8IzABHdcv2Mv/AAdB04t89/1O/w1cDnyilFU=')
+handler = WebhookHanndler('09476e50209f395bfa593c7bd53cdef0')
 
 app = Flask(__name__)
  
 @app.route('/')
 def index():
-    return 'This is chatbot server.'
-@app.route('/bot', methods=['POST'])
+    return 'hello this is your server.'
 
-def bot():
-    # ข้อความที่ต้องการส่งกลับ
-    replyStack = list()
+@app.route('/webhook', methods=['POST'])
+
+def webhook():
+    # get ค่า ผู้ใช้
+    signature = request.headers['X-Line-Signature']
    
-    # ข้อความที่ได้รับมา
-    msg_in_json = request.get_json()
-    msg_in_string = json.dumps(msg_in_json)
+    # get request body as text
+     body = request.get_date(as_text=True)
+     app.logger.info("Request body: "+body)
     
-    # Token สำหรับตอบกลับ (จำเป็นต้องใช้ในการตอบกลับ)
-    replyToken = msg_in_json["events"][0]['replyToken']
     
-    # ส่วนนี้ดึงข้อมูลพื้นฐานออกมาจาก json (เผื่อ)
-    userID =  msg_in_json["events"][0]['source']['userId']
-    msgType =  msg_in_json["events"][0]['message']['type']
-    
-    # ตรวจสอบว่า ที่ส่งเข้ามาเป็น text รึป่าว (อาจเป็น รูป, location อะไรแบบนี้ได้ครับ)
-    #if msgType != 'text':
-    #    reply(replyToken, ['Only text is allowed.'])
-    #    return 'OK',200
-    
-    # ตรงนี้ต้องแน่ใจว่า msgType เป็นประเภท text ถึงเรียกได้ครับ
-    #text = msg_in_json["events"][0]['message']['text'].lower().strip()
-    
-    if msgType != 'text':
-        reply(replyToken, ['Only text is allowed.'])
-        return 'OK',200
-    
-    text = msg_in_json["events"][0]['message']['text'].lower().strip()
+    try:
+        handler.handle(body, sinature)
+    except InvalidSignatureError
+        abort(400)
+    return 'ok'
 
-    # ตอบข้อความ "นี่คือรูปแบบข้อความที่รับส่ง" กลับไป
-    replyStack.append('นี่คือรูปแบบข้อความที่รับส่ง')
-    
-    # ทดลอง Echo ข้อความกลับไปในรูปแบบที่ส่งไปมา (แบบ json)
-    replyStack.append(msg_in_string)
-    reply(replyToken, replyStack[:5])
-    
-    return 'OK', 200
+@handler.add(MessageEvent,message=TextMessage)
+def handle_message(event)
+    line_bot_api.reply_message(event.reply_token,TextSendMessage(text=evet.message.text))
  
-def reply(replyToken, textList):
-    # Method สำหรับตอบกลับข้อความประเภท text กลับครับ เขียนแบบนี้เลยก็ได้ครับ
-    LINE_API = 'https://api.line.me/v2/bot/message/reply'
-    headers = {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': LINE_API_KEY
-    }
-    msgs = []
-    for text in textList:
-        msgs.append({
-            "type":"text",
-            "text":text
-        })
-    data = json.dumps({
-        "replyToken":replyToken,
-        "messages":msgs
-    })
-    requests.post(LINE_API, headers=headers, data=data)
-    return
 
 if __name__ == '__main__':
     app.run(debug = True)
